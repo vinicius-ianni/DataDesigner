@@ -1,11 +1,35 @@
 REPO_PATH := $(shell pwd)
 
 help:
-	@echo "Available commands:"
-	@echo "  clean                  - Remove coverage reports and cache files"
-	@echo "  coverage               - Run tests with coverage report"
+	@echo ""
+	@echo "🚀 DataDesigner Makefile Commands"
+	@echo "═════════════════════════════════════════════════════════════"
+	@echo ""
+	@echo "📦 Installation:"
+	@echo "  install                - Install project dependencies with uv"
+	@echo "  install-dev            - Install project with dev dependencies"
+	@echo ""
+	@echo "🧪 Testing:"
 	@echo "  test                   - Run all unit tests"
+	@echo "  coverage               - Run tests with coverage report"
+	@echo ""
+	@echo "✨ Code Quality:"
+	@echo "  format                 - Format code with ruff"
+	@echo "  format-check           - Check code formatting without making changes"
+	@echo "  lint                   - Lint code with ruff"
+	@echo "  lint-fix               - Fix linting issues automatically"
+	@echo ""
+	@echo "🔍 Combined Checks:"
+	@echo "  check-all              - Run all checks (format-check + lint)"
+	@echo "  check-all-fix          - Run all checks with autofix (format + lint-fix)"
+	@echo ""
+	@echo "🛠️  Utilities:"
+	@echo "  clean                  - Remove coverage reports and cache files"
 	@echo "  update-license-headers - Add license headers to all files"
+	@echo ""
+	@echo "═════════════════════════════════════════════════════════════"
+	@echo "💡 Tip: Run 'make <command>' to execute any command above"
+	@echo ""
 
 clean:
 	@echo "🧹 Cleaning up coverage reports and cache files..."
@@ -17,6 +41,32 @@ coverage:
 	uv run pytest --cov=data_designer --cov-report=term-missing --cov-report=html
 	@echo "✅ Coverage report generated in htmlcov/index.html"
 
+check-all: format-check lint
+	@echo "✅ All checks complete!"
+
+check-all-fix: format lint-fix
+	@echo "✅ All checks with autofix complete!"
+
+format:
+	@echo "📐 Formatting code with ruff..."
+	uv run ruff format
+	@echo "✅ Formatting complete!"
+
+format-check:
+	@echo "📐 Checking code formatting with ruff..."
+	uv run ruff format --check
+	@echo "✅ Formatting check complete! Run 'make format' to auto-fix issues."
+
+lint:
+	@echo "🔍 Linting code with ruff..."
+	uv run ruff check --output-format=full
+	@echo "✅ Linting complete! Run 'make lint-fix' to auto-fix issues."
+
+lint-fix:
+	@echo "🔍 Fixing linting issues with ruff..."
+	uv run ruff check --fix
+	@echo "✅ Linting with autofix complete!"
+
 test:
 	@echo "🧪 Running unit tests..."
 	uv run pytest
@@ -24,3 +74,15 @@ test:
 update-license-headers:
 	@echo "🔍 Updating license headers in all files..."
 	uv run python $(REPO_PATH)/scripts/add-license-headers.py
+
+install:
+	@echo "📦 Installing project dependencies..."
+	uv sync
+	@echo "✅ Installation complete!"
+
+install-dev:
+	@echo "📦 Installing project with dev dependencies..."
+	uv sync --all-extras
+	@echo "✅ Dev installation complete!"
+
+.PHONY: clean coverage format format-check lint lint-fix test update-license-headers check-all check-all-fix install install-dev
