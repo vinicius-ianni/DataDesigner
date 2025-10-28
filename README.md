@@ -6,9 +6,9 @@ Create synthetic datasets from scratch.
 ## Installation
 
 ```bash
-git clone https://gitlab-master.nvidia.com/jogreco/data-designer.git
-cd data-designer
-uv sync
+git clone https://github.com/NVIDIA-NeMo/DataDesigner.git
+cd DataDesigner
+make install
 ```
 
 Test your installation:
