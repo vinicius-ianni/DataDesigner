@@ -8,6 +8,7 @@ help:
 	@echo "📦 Installation:"
 	@echo "  install                - Install project dependencies with uv"
 	@echo "  install-dev            - Install project with dev dependencies"
+	@echo "  install-dev-notebooks  - Install dev + notebook dependencies (Jupyter, etc.)"
 	@echo ""
 	@echo "🧪 Testing:"
 	@echo "  test                   - Run all unit tests"
@@ -39,7 +40,7 @@ clean:
 
 coverage:
 	@echo "📊 Running tests with coverage analysis..."
-	uv run pytest --cov=data_designer --cov-report=term-missing --cov-report=html
+	uv run --group dev pytest --cov=data_designer --cov-report=term-missing --cov-report=html
 	@echo "✅ Coverage report generated in htmlcov/index.html"
 
 check-all: format-check lint
@@ -70,7 +71,7 @@ lint-fix:
 
 test:
 	@echo "🧪 Running unit tests..."
-	uv run pytest
+	uv run --group dev pytest
 
 check-license-headers:
 	@echo "🔍 Checking license headers in all files..."
@@ -87,7 +88,12 @@ install:
 
 install-dev:
 	@echo "📦 Installing project with dev dependencies..."
-	uv sync --all-extras
+	uv sync --group dev
 	@echo "✅ Dev installation complete!"
 
-.PHONY: clean coverage format format-check lint lint-fix test check-license-headers update-license-headers check-all check-all-fix install install-dev
+install-dev-notebooks:
+	@echo "📦 Installing project with notebook dependencies..."
+	uv sync --group dev --group notebooks
+	@echo "✅ Dev + notebooks installation complete!"
+
+.PHONY: clean coverage format format-check lint lint-fix test check-license-headers update-license-headers check-all check-all-fix install install-dev install-dev-notebooks
