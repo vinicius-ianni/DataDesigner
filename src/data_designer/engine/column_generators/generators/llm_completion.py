@@ -55,6 +55,9 @@ class ColumnGeneratorWithModelChatCompletion(ColumnGeneratorWithModel[TaskConfig
         )
 
     def generate(self, data: dict) -> dict:
+        # Deserialize input data from previous columns so Jinja2 templates can access nested fields
+        # Example: If prev column stored '{"key": "value"}', templates can use {{ prev_column.key }}
+        # Note: This creates a new dict and doesn't mutate the original `data` argument
         deserialized_record = deserialize_json_values(data)
 
         multi_modal_context = None
@@ -81,12 +84,17 @@ class ColumnGeneratorWithModelChatCompletion(ColumnGeneratorWithModel[TaskConfig
             purpose=f"running generation for column '{self.config.name}'",
         )
 
-        data[self.config.name] = deserialize_json_values(self.response_recipe.serialize_output(response))
+        serialized_output = self.response_recipe.serialize_output(response)
+        data[self.config.name] = self._process_serialized_output(serialized_output)
 
         if reasoning_trace:
             data[self.config.name + REASONING_TRACE_COLUMN_POSTFIX] = reasoning_trace
 
         return data
+
+    def _process_serialized_output(self, serialized_output: str) -> str | dict | list:
+        """Process the serialized output from the model. Subclasses can override to customize deserialization."""
+        return serialized_output
 
 
 class LLMTextCellGenerator(ColumnGeneratorWithModelChatCompletion[LLMTextColumnConfig]): ...
@@ -95,7 +103,11 @@ class LLMTextCellGenerator(ColumnGeneratorWithModelChatCompletion[LLMTextColumnC
 class LLMCodeCellGenerator(ColumnGeneratorWithModelChatCompletion[LLMCodeColumnConfig]): ...
 
 
-class LLMStructuredCellGenerator(ColumnGeneratorWithModelChatCompletion[LLMStructuredColumnConfig]): ...
+class LLMStructuredCellGenerator(ColumnGeneratorWithModelChatCompletion[LLMStructuredColumnConfig]):
+    def _process_serialized_output(self, serialized_output: str) -> dict | list:
+        return deserialize_json_values(serialized_output)
 
 
-class LLMJudgeCellGenerator(ColumnGeneratorWithModelChatCompletion[LLMJudgeColumnConfig]): ...
+class LLMJudgeCellGenerator(ColumnGeneratorWithModelChatCompletion[LLMJudgeColumnConfig]):
+    def _process_serialized_output(self, serialized_output: str) -> dict | list:
+        return deserialize_json_values(serialized_output)
