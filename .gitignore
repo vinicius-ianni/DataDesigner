@@ -79,8 +79,8 @@ venv.bak/
 *.tar.gz
 *.zip
 
-# Auto-generated version file
-src/data_designer/_version.py
+# Auto-generated version files
+**/_version.py
 
 # Local scratch space
 .scratch/
@@ -94,3 +94,4 @@ tests_e2e/uv.lock
 
 # Performance profiling
 perf_*.txt
+NOTEPAD.md

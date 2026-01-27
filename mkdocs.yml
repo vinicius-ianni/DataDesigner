@@ -88,7 +88,9 @@ extra:
     default: latest
 
 watch:
-  - src/data_designer
+  - packages/data-designer-config/src/data_designer
+  - packages/data-designer-engine/src/data_designer
+  - packages/data-designer/src/data_designer
   - docs/
 
 plugins:
@@ -106,6 +108,10 @@ plugins:
   - mkdocstrings:
       handlers:
           python:
+              paths:
+                  - packages/data-designer-config/src
+                  - packages/data-designer-engine/src
+                  - packages/data-designer/src
               options:
                   show_symbol_type_heading: true
                   show_symbol_type_toc: true
