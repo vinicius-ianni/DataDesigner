@@ -21,6 +21,13 @@ nav:
       - Processors: concepts/processors.md
       - Person Sampling: concepts/person_sampling.md
       - Traces: concepts/traces.md
+      - Tool Use & MCP:
+          - Overview: concepts/tool_use_and_mcp.md
+          - MCP Providers: concepts/mcp/mcp-providers.md
+          - Tool Configs: concepts/mcp/tool-configs.md
+          - Enabling Tools: concepts/mcp/enabling-tools.md
+          - CLI Configuration: concepts/mcp/configure-mcp-cli.md
+          - Safety & Limits: concepts/mcp/safety-and-limits.md
   - Tutorials:
       - Overview: notebooks/README.md
       - The Basics: notebooks/1-the-basics.ipynb
@@ -35,12 +42,15 @@ nav:
       - QA and Chat:
           - Product Info QA: recipes/qa_and_chat/product_info_qa.md
           - Multi-Turn Chat: recipes/qa_and_chat/multi_turn_chat.md
+      - MCP and Tool Use:
+          - "PDF Document QA": recipes/mcp_and_tooluse/pdf_qa.md
   - Plugins:
       - Overview: plugins/overview.md
       - Example Plugin: plugins/example.md
       - Available Plugin List: plugins/available.md
   - Code Reference:
       - models: code_reference/models.md
+      - mcp: code_reference/mcp.md
       - column_configs: code_reference/column_configs.md
       - config_builder: code_reference/config_builder.md
       - data_designer_config: code_reference/data_designer_config.md

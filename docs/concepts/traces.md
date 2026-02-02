@@ -1,6 +1,8 @@
 # Message Traces
 
-Traces capture the full conversation history during LLM generation, including system prompts, user prompts, model reasoning, and the final response. This visibility is essential for understanding model behavior, debugging generation issues, and iterating on prompts.
+Traces capture the full conversation history during LLM generation, including system prompts, user prompts, model reasoning, tool calls, tool results, and the final response. This visibility is essential for understanding model behavior, debugging generation issues, and iterating on prompts.
+
+Traces are also useful in certain scenarios as the target output of the workflow, e.g. producing an SFT dataset for fine-tuning tool-use capability, for instance.
 
 ## Overview
 
@@ -9,10 +11,13 @@ When generating content with LLM columns, you often need to understand what happ
 - What system prompt was used?
 - What did the rendered user prompt look like?
 - Did the model provide any reasoning content?
+- Which tools were called (if tool use is enabled)?
+- What arguments were passed to tools?
+- What did tools return?
 - Did the model retry after failures?
 - How did the model arrive at the final answer?
 
-Traces provide this visibility by capturing the ordered message history for each generation, including any multi-turn conversations that occur during retry scenarios.
+Traces provide this visibility by capturing the ordered message history for each generation, including any multi-turn conversations that occur during tool use or retry scenarios.
 
 ## Enabling Traces
 
@@ -65,11 +70,12 @@ Each trace is a `list[dict]` where each dict represents a message in the convers
 |------|--------|-------------|
 | `system` | `role`, `content` | System prompt setting model behavior |
 | `user` | `role`, `content` | User prompt (rendered from template) |
-| `assistant` | `role`, `content`, `reasoning_content` | Model response; may include reasoning from extended thinking models |
+| `assistant` | `role`, `content`, `tool_calls`, `reasoning_content` | Model response; `content` may be `None` if only requesting tools |
+| `tool` | `role`, `content`, `tool_call_id` | Tool execution result; `tool_call_id` links to the request |
 
 ### Example Trace (Simple Generation)
 
-A basic trace without retries:
+A basic trace without tool use:
 
 ```python
 [
@@ -92,40 +98,67 @@ A basic trace without retries:
 ]
 ```
 
-### Example Trace (With Correction Retry)
+### Example Trace (With Tool Use)
 
-When `max_correction_steps > 0` and parsing fails, traces capture the retry conversation:
+When tool use is enabled, traces capture the full conversation including tool calls:
 
 ```python
 [
     # System message
     {
         "role": "system",
-        "content": "Return only valid JSON."
+        "content": "You must call tools before answering. Only use tool results."
     },
-    # User message
+    # User message (the rendered prompt)
     {
         "role": "user",
-        "content": "Generate a person object with name and age."
+        "content": "What documents are in the knowledge base about machine learning?"
     },
-    # First attempt (invalid)
+    # Assistant requests tool calls
     {
         "role": "assistant",
-        "content": "Here's a person: {name: 'John', age: 30}"  # Invalid JSON
+        "content": None,
+        "tool_calls": [
+            {
+                "id": "call_abc123",
+                "type": "function",
+                "function": {
+                    "name": "list_docs",
+                    "arguments": "{\"query\": \"machine learning\"}"
+                }
+            }
+        ]
     },
-    # Error feedback
+    # Tool response (linked by tool_call_id)
     {
-        "role": "user",
-        "content": "JSONDecodeError: Expecting property name enclosed in double quotes"
+        "role": "tool",
+        "content": "Found 3 documents: intro_ml.pdf, neural_networks.pdf, transformers.pdf",
+        "tool_call_id": "call_abc123"
     },
-    # Corrected response
+    # Final assistant response
     {
         "role": "assistant",
-        "content": "{\"name\": \"John\", \"age\": 30}"
+        "content": "The knowledge base contains three documents about machine learning: ..."
     }
 ]
 ```
 
+### The tool_calls Structure
+
+When an assistant message includes tool calls:
+
+```python
+{
+    "id": "call_abc123",           # Unique ID linking to tool response
+    "type": "function",            # Always "function" for MCP tools
+    "function": {
+        "name": "search_docs",     # Tool name
+        "arguments": "{...}"       # JSON string of tool arguments
+    }
+}
+```
+
 ## See Also
 
+- **[Safety and Limits](mcp/safety-and-limits.md)**: Understand turn limits and timeout behavior
 - **[Run Config](../code_reference/run_config.md)**: Runtime options including `debug_override_save_all_column_traces`

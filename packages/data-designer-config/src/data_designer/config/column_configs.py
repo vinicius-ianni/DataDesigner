@@ -159,8 +159,11 @@ class LLMTextColumnConfig(SingleColumnConfig):
             `LLMStructuredColumnConfig` for structured output, `LLMCodeColumnConfig` for code.
         multi_modal_context: Optional list of image contexts for multi-modal generation.
             Enables vision-capable models to generate text based on image inputs.
+        tool_alias: Optional alias of the tool configuration to use for MCP tool calls.
+            Must match a tool alias defined when initializing the DataDesignerConfigBuilder.
+            When provided, the model may call permitted tools during generation.
         with_trace: If True, creates a `{column_name}__trace` column containing the full
-            ordered message history (system/user/assistant) for the generation.
+            ordered message history (system/user/assistant/tool) for the generation.
             Can be overridden globally via `RunConfig.debug_override_save_all_column_traces`.
             Defaults to False.
         column_type: Discriminator field, always "llm-text" for this configuration type.
@@ -170,6 +173,7 @@ class LLMTextColumnConfig(SingleColumnConfig):
     model_alias: str
     system_prompt: str | None = None
     multi_modal_context: list[ImageContext] | None = None
+    tool_alias: str | None = None
     with_trace: bool = False
     column_type: Literal["llm-text"] = "llm-text"
 

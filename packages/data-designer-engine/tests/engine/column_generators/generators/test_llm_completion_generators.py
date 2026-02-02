@@ -274,6 +274,19 @@ def test_generate_with_json_deserialization():
     assert result["test_column"] == {"result": "json_output"}
 
 
+def test_generate_passes_tool_alias() -> None:
+    generator, mock_resource_provider, mock_model, _, _, mock_prompt_renderer, mock_response_recipe = (
+        _create_generator_with_mocks(tool_alias="search")
+    )
+    _setup_generate_mocks(mock_prompt_renderer, mock_response_recipe, mock_model)
+
+    data = {"input": "test_input"}
+    _ = generator.generate(data)
+
+    # Verify tool_alias is passed directly to model.generate()
+    assert mock_model.generate.call_args[1]["tool_alias"] == "search"
+
+
 @pytest.mark.parametrize(
     "generator_class,config_class,config_kwargs,serialized_output,expected_output",
     [

@@ -35,7 +35,7 @@ class RunConfig(ConfigBase):
             Default is 0.
         debug_override_save_all_column_traces: If True, overrides per-column `with_trace` settings
             and includes `__trace` columns for ALL LLM generations, containing the full ordered
-            message history (system/user/assistant) for the final generation attempt.
+            message history (system/user/assistant/tool) for the final generation attempt.
             Useful for debugging. Default is False.
     """
 
