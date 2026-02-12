@@ -27,7 +27,6 @@ from data_designer.engine.column_generators.generators.base import (
 )
 from data_designer.engine.column_generators.utils.generator_classification import column_type_is_model_generated
 from data_designer.engine.compiler import compile_data_designer_config
-from data_designer.engine.dataset_builders.artifact_storage import SDG_CONFIG_FILENAME, ArtifactStorage
 from data_designer.engine.dataset_builders.errors import DatasetGenerationError
 from data_designer.engine.dataset_builders.multi_column_configs import MultiColumnConfig
 from data_designer.engine.dataset_builders.utils.concurrency import ConcurrentThreadExecutor
@@ -40,6 +39,7 @@ from data_designer.engine.processing.processors.base import Processor
 from data_designer.engine.processing.processors.drop_columns import DropColumnsProcessor
 from data_designer.engine.registry.data_designer_registry import DataDesignerRegistry
 from data_designer.engine.resources.resource_provider import ResourceProvider
+from data_designer.engine.storage.artifact_storage import SDG_CONFIG_FILENAME, ArtifactStorage
 from data_designer.engine.storage.media_storage import StorageMode
 from data_designer.lazy_heavy_imports import pd
 
@@ -177,10 +177,6 @@ class ColumnWiseDatasetBuilder:
     def process_preview(self, dataset: pd.DataFrame) -> pd.DataFrame:
         df = self._processor_runner.run_post_batch(dataset.copy(), current_batch_number=None)
         return self._processor_runner.run_after_generation_on_df(df)
-
-    def _has_image_columns(self) -> bool:
-        """Check if config has any image generation columns."""
-        return any(col.column_type == DataDesignerColumnType.IMAGE for col in self.single_column_configs)
 
     def _has_image_columns(self) -> bool:
         """Check if config has any image generation columns."""
