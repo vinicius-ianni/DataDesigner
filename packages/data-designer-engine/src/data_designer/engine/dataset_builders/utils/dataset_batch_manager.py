@@ -24,6 +24,7 @@ class DatasetBatchManager:
         self._current_batch_number = 0
         self._num_records_list: list[int] | None = None
         self._buffer_size: int | None = None
+        self._actual_num_records: int = 0
         self.artifact_storage = artifact_storage
 
     @property
@@ -82,11 +83,13 @@ class DatasetBatchManager:
             raise DatasetBatchManagementError("🛑 All batches have been processed.")
 
         if self.write() is not None:
+            self._actual_num_records += len(self._buffer)
             final_file_path = self.artifact_storage.move_partial_result_to_final_file_path(self._current_batch_number)
 
             self.artifact_storage.write_metadata(
                 {
                     "target_num_records": sum(self.num_records_list),
+                    "actual_num_records": self._actual_num_records,
                     "total_num_batches": self.num_batches,
                     "buffer_size": self._buffer_size,
                     "schema": {field.name: str(field.type) for field in lazy.pq.read_schema(final_file_path)},
@@ -140,6 +143,7 @@ class DatasetBatchManager:
     def reset(self, delete_files: bool = False) -> None:
         self._current_batch_number = 0
         self._buffer: list[dict] = []
+        self._actual_num_records = 0
         if delete_files:
             for dir_path in [
                 self.artifact_storage.final_dataset_path,
@@ -190,16 +194,18 @@ class DatasetBatchManager:
             raise IndexError(f"🛑 Index {index} is out of bounds for buffer of size {len(self._buffer)}.")
         self._buffer[index] = record
 
-    def update_records(self, records: list[dict]) -> None:
-        if len(records) != len(self._buffer):
+    def replace_buffer(self, records: list[dict], *, allow_resize: bool = False) -> None:
+        """Replace the buffer contents.
+
+        Args:
+            records: New records to replace the buffer.
+            allow_resize: If True, allows the number of records to differ from the current
+                buffer size (1:N or N:1 patterns). Defaults to False for strict 1:1 mapping.
+        """
+        if not allow_resize and len(records) != len(self._buffer):
             raise DatasetBatchManagementError(
-                f"🛑 Number of records to update ({len(records)}) must match "
-                f"the number of records in the buffer ({len(self._buffer)})."
+                f"🛑 Number of records ({len(records)}) must match the current buffer size ({len(self._buffer)})."
             )
         self._buffer = records
-
-    def replace_buffer(self, records: list[dict]) -> None:
-        """Replace the buffer contents, updating the current batch size."""
-        self._buffer = records
-        if self._num_records_list is not None:
+        if allow_resize and self._num_records_list is not None:
             self._num_records_list[self._current_batch_number] = len(records)
