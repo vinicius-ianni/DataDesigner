@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+import data_designer.lazy_heavy_imports as lazy
 from data_designer.config.config_builder import DataDesignerConfigBuilder
 from data_designer.config.utils.code_lang import CodeLang
 from data_designer.config.utils.errors import DatasetSampleDisplayError
@@ -19,7 +20,6 @@ from data_designer.config.utils.visualization import (
     mask_api_key,
 )
 from data_designer.config.validator_params import CodeValidatorParams
-from data_designer.lazy_heavy_imports import pd
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -58,7 +58,9 @@ def test_display_sample_record_twice_no_errors(
 ) -> None:
     """Test that calling display_sample_record twice on validation output produces no errors."""
     sample_record = {"code": "print('hello world')", "code_validation_result": validation_output}
-    record_series = pd.Series(sample_record)
+
+    # Convert to pandas Series to match expected input format
+    record_series = lazy.pd.Series(sample_record)
 
     display_sample_record(record_series, config_builder_with_validation)
     display_sample_record(record_series, config_builder_with_validation)
@@ -100,7 +102,7 @@ def test_display_sample_record_save_html(
 ) -> None:
     """Test that display_sample_record saves HTML with dark-mode style block injected."""
     sample_record = {"code": "print('hello world')", "code_validation_result": validation_output}
-    record_series = pd.Series(sample_record)
+    record_series = lazy.pd.Series(sample_record)
     save_path = tmp_path / "output.html"
 
     display_sample_record(record_series, config_builder_with_validation, save_path=save_path)
@@ -117,7 +119,7 @@ def test_display_sample_record_save_svg(
 ) -> None:
     """Test that display_sample_record can save output as an SVG file."""
     sample_record = {"code": "print('hello world')", "code_validation_result": validation_output}
-    record_series = pd.Series(sample_record)
+    record_series = lazy.pd.Series(sample_record)
     save_path = tmp_path / "output.svg"
 
     display_sample_record(record_series, config_builder_with_validation, save_path=save_path)
@@ -132,7 +134,7 @@ def test_display_sample_record_save_invalid_extension(
 ) -> None:
     """Test that display_sample_record raises an error for unsupported file extensions."""
     sample_record = {"code": "print('hello world')", "code_validation_result": validation_output}
-    record_series = pd.Series(sample_record)
+    record_series = lazy.pd.Series(sample_record)
     save_path = tmp_path / "output.txt"
 
     with pytest.raises(DatasetSampleDisplayError, match="must be either .html or .svg"):
@@ -144,7 +146,7 @@ def test_display_sample_record_save_path_none_default(
 ) -> None:
     """Test that display_sample_record with save_path=None prints to console without creating files."""
     sample_record = {"code": "print('hello world')", "code_validation_result": validation_output}
-    record_series = pd.Series(sample_record)
+    record_series = lazy.pd.Series(sample_record)
 
     display_sample_record(record_series, config_builder_with_validation, save_path=None)
 
@@ -224,7 +226,7 @@ def test_save_console_output_svg_no_dark_mode(
 ) -> None:
     """Test that SVG files do not receive dark mode CSS injection."""
     sample_record = {"code": "print('hello world')", "code_validation_result": validation_output}
-    record_series = pd.Series(sample_record)
+    record_series = lazy.pd.Series(sample_record)
     save_path = tmp_path / "output.svg"
 
     display_sample_record(record_series, config_builder_with_validation, save_path=save_path)
@@ -246,7 +248,7 @@ def test_mixin_out_of_bounds_raises_display_error(
             self.dataset_metadata = None
 
     sample_record = {"code": "print('hello world')", "code_validation_result": validation_output}
-    dataset = pd.DataFrame([sample_record])
+    dataset = lazy.pd.DataFrame([sample_record])
     results = FakeResults(dataset, config_builder_with_validation)
 
     with pytest.raises(DatasetSampleDisplayError, match="out of bounds"):
